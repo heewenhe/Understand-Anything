@@ -220,6 +220,19 @@ describe("DartExtractor", () => {
     });
   });
 
+  describe("extractStructure - enums", () => {
+    it("extracts a simple enum and surfaces its constants as properties", () => {
+      const { tree, parser, root } = parse(`enum Color { red, green, blue }\n`);
+      const result = extractor.extractStructure(root);
+
+      expect(result.classes).toHaveLength(1);
+      expect(result.classes[0].name).toBe("Color");
+      expect(result.classes[0].properties).toEqual(["red", "green", "blue"]);
+      tree.delete();
+      parser.delete();
+    });
+  });
+
   describe("extractStructure - extensions", () => {
     it("extracts a named extension on String", () => {
       const { tree, parser, root } = parse(`extension StringX on String {

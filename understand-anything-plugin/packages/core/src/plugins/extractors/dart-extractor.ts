@@ -241,6 +241,9 @@ export class DartExtractor implements LanguageExtractor {
         case "extension_declaration":
           this.extractExtensionDeclaration(node, classes, functions, exports);
           break;
+        case "enum_declaration":
+          this.extractEnumDeclaration(node, classes, exports);
+          break;
       }
     }
 
@@ -346,6 +349,36 @@ export class DartExtractor implements LanguageExtractor {
       exports,
       `on ${onType.text}`,
     );
+  }
+
+  private extractEnumDeclaration(
+    declNode: TreeSitterNode,
+    classes: StructuralAnalysis["classes"],
+    exports: StructuralAnalysis["exports"],
+  ): void {
+    const nameNode = findChild(declNode, "identifier");
+    if (!nameNode) return;
+    const name = nameNode.text;
+
+    const properties: string[] = [];
+    const body = findChild(declNode, "enum_body");
+    if (body) {
+      for (const k of findChildren(body, "enum_constant")) {
+        const id = findChild(k, "identifier");
+        if (id) properties.push(id.text);
+      }
+    }
+
+    classes.push({
+      name,
+      lineRange: [declNode.startPosition.row + 1, declNode.endPosition.row + 1],
+      methods: [],
+      properties,
+    });
+
+    if (isExported(name)) {
+      exports.push({ name, lineNumber: declNode.startPosition.row + 1 });
+    }
   }
 
   extractCallGraph(rootNode: TreeSitterNode): CallGraphEntry[] {
