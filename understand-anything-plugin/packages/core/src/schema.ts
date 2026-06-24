@@ -11,6 +11,7 @@ export const EdgeTypeSchema = z.enum([
   "migrates", "documents", "routes", "defines_schema",         // Schema/Data
   "contains_flow", "flow_step", "cross_domain",                // Domain
   "cites", "contradicts", "builds_on", "exemplifies", "categorized_under", "authored_by", // Knowledge
+  "instance_of", "variant_of", "uses_token", // Design
 ]);
 
 // Aliases that LLMs commonly generate instead of canonical node types
@@ -58,7 +59,6 @@ export const NODE_TYPE_ALIASES: Record<string, string> = {
   business_step: "step",
   // Knowledge aliases
   note: "article",
-  page: "article",
   wiki_page: "article",
   person: "entity",
   actor: "entity",
@@ -72,6 +72,17 @@ export const NODE_TYPE_ALIASES: Record<string, string> = {
   reference: "source",
   raw: "source",
   paper: "source",
+  // Design aliases (Figma node types). NOTE: the former `page: "article"`
+  // entry was removed — `page` is now a first-class design node type, so it
+  // must not be rewritten (and `canvas: "page"` would otherwise chain).
+  frame: "screen",
+  artboard: "screen",
+  canvas: "page",
+  main_component: "component",
+  component_set: "componentSet",
+  variant_set: "componentSet",
+  design_token: "token",
+  style: "token",
 };
 
 // Aliases that LLMs commonly generate instead of canonical edge types
@@ -113,12 +124,18 @@ export const EDGE_TYPE_ALIASES: Record<string, string> = {
   refines: "builds_on",
   elaborates: "builds_on",
   illustrates: "exemplifies",
-  instance_of: "exemplifies",
   example_of: "exemplifies",
   belongs_to: "categorized_under",
   tagged_with: "categorized_under",
   written_by: "authored_by",
   created_by: "authored_by",
+  // Design aliases
+  instantiates: "instance_of",
+  variant: "variant_of",
+  styled_by: "uses_token",
+  applies_token: "uses_token",
+  // NOTE: the former `instance_of: "exemplifies"` entry is removed —
+  // instance_of is now a first-class design edge.
   // Note: "implemented_by" is intentionally NOT aliased to "implements" —
   // it inverts edge direction (see commit fd0df15). The LLM should use
   // "implements" with correct source/target instead.
@@ -365,6 +382,18 @@ const KnowledgeMetaSchema = z.object({
   content: z.string().optional(),
 }).passthrough();
 
+const FigmaMetaSchema = z.object({
+  fileKey: z.string().optional(),
+  nodeId: z.string().optional(),
+  figmaType: z.string().optional(),
+  thumbnailUrl: z.string().optional(),
+  dimensions: z.object({ width: z.number(), height: z.number() }).optional(),
+  tokenKind: z.enum(["color", "type", "spacing", "effect", "grid"]).optional(),
+  tokenValue: z.string().optional(),
+  prototypeTargets: z.array(z.string()).optional(),
+  componentKey: z.string().optional(),
+}).passthrough();
+
 export const GraphNodeSchema = z.object({
   id: z.string(),
   type: z.enum([
@@ -373,6 +402,7 @@ export const GraphNodeSchema = z.object({
     "pipeline", "schema", "resource",
     "domain", "flow", "step",
     "article", "entity", "topic", "claim", "source",
+    "page", "screen", "component", "componentSet", "instance", "token",
   ]),
   name: z.string(),
   filePath: z.string().optional(),
@@ -383,6 +413,7 @@ export const GraphNodeSchema = z.object({
   languageNotes: z.string().optional(),
   domainMeta: DomainMetaSchema.optional(),
   knowledgeMeta: KnowledgeMetaSchema.optional(),
+  figmaMeta: FigmaMetaSchema.optional(),
 }).passthrough();
 
 export const GraphEdgeSchema = z.object({
@@ -420,7 +451,7 @@ export const ProjectMetaSchema = z.object({
 
 export const KnowledgeGraphSchema = z.object({
   version: z.string(),
-  kind: z.enum(["codebase", "knowledge"]).optional(),
+  kind: z.enum(["codebase", "knowledge", "design"]).optional(),
   project: ProjectMetaSchema,
   nodes: z.array(GraphNodeSchema),
   edges: z.array(GraphEdgeSchema),

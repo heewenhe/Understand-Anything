@@ -727,3 +727,45 @@ describe("Extended node/edge types", () => {
     expect(result.success).toBe(true);
   });
 });
+
+function designGraph() {
+  return {
+    version: "1.0.0",
+    kind: "design",
+    project: { name: "F", languages: ["figma"], frameworks: [], description: "d", analyzedAt: "t", gitCommitHash: "" },
+    nodes: [
+      { id: "screen:1:2", type: "screen", name: "Login", summary: "s", tags: ["auth"], complexity: "simple" },
+      { id: "component:3:4", type: "component", name: "Button/Primary", summary: "s", tags: ["ds"], complexity: "simple" },
+      { id: "instance:5:6", type: "instance", name: "SignInBtn", summary: "s", tags: ["use"], complexity: "simple" },
+      { id: "token:color:brand", type: "token", name: "color/brand", summary: "s", tags: ["token"], complexity: "simple" },
+    ],
+    edges: [
+      { source: "instance:5:6", target: "component:3:4", type: "instance_of", direction: "forward", weight: 0.8 },
+      { source: "component:3:4", target: "token:color:brand", type: "uses_token", direction: "forward", weight: 0.5 },
+    ],
+    layers: [],
+    tour: [],
+  };
+}
+
+describe("design graph schema", () => {
+  it("accepts design node and edge types", () => {
+    const res = validateGraph(designGraph());
+    expect(res.success).toBe(true);
+    expect(res.data!.nodes).toHaveLength(4);
+    expect(res.data!.edges).toHaveLength(2);
+  });
+
+  it("keeps instance_of as a first-class edge (NOT rewritten to exemplifies)", () => {
+    const res = validateGraph(designGraph());
+    const e = res.data!.edges.find((x) => x.source === "instance:5:6");
+    expect(e!.type).toBe("instance_of");
+  });
+
+  it("normalizes figma node-type aliases (frame → screen)", () => {
+    const g = designGraph();
+    g.nodes[0].type = "frame";
+    const res = validateGraph(g);
+    expect(res.data!.nodes.find((n) => n.id === "screen:1:2")!.type).toBe("screen");
+  });
+});
