@@ -19,6 +19,19 @@ const tokens = extractTokens(doc, styles, structural.nodes, fileKey);
 const nodes = [...structural.nodes, ...tokens.nodes];
 const edges = [...structural.edges, ...tokens.edges];
 
+// Pre-fetch thumbnails for screens only (bounded). URLs are pre-signed and
+// may expire after a few hours — fine for view-after-generate; re-run to refresh.
+const screens = structural.nodes.filter((n) => n.type === "screen");
+try {
+  const images = await source.renderImages(screens.map((n) => n.figmaMeta.nodeId));
+  for (const s of screens) {
+    const url = images[s.figmaMeta.nodeId];
+    if (url) s.figmaMeta.thumbnailUrl = url;
+  }
+} catch {
+  // thumbnails are optional — never fail the scan on image render
+}
+
 const manifest = {
   project: {
     name: doc.name,
