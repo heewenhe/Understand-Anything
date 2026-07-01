@@ -979,7 +979,7 @@ class TestMultiPart(unittest.TestCase):
         import subprocess
         import json as _j
         result = subprocess.run(
-            ["python3", str(_MODULE_PATH), str(self.tmp)],
+            [sys.executable, str(_MODULE_PATH), str(self.tmp)],
             capture_output=True, text=True,
         )
         out_path = self.intermediate / "assembled-graph.json"
@@ -1098,7 +1098,7 @@ class TestUnrecognizedBatchFilename(unittest.TestCase):
         import subprocess
         import json as _j
         result = subprocess.run(
-            ["python3", str(_MODULE_PATH), str(self.tmp)],
+            [sys.executable, str(_MODULE_PATH), str(self.tmp)],
             capture_output=True, text=True,
         )
         out_path = self.intermediate / "assembled-graph.json"

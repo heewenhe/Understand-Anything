@@ -19,11 +19,19 @@ concurrency:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
 
       - uses: actions/setup-node@v4
         with:
@@ -48,3 +56,6 @@ jobs:
 
       - name: Test skill
         run: pnpm test
+
+      - name: Test Python skill helpers
+        run: python -m unittest tests.skill.understand.test_merge_batch_graphs -v

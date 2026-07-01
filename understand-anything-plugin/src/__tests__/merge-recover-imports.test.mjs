@@ -8,12 +8,28 @@ import { dirname, resolve } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const MERGE_SCRIPT = resolve(__dirname, "../../skills/understand/merge-batch-graphs.py");
+const PYTHON = findPython();
 
 let projectRoot;
 let intermediateDir;
 
+function findPython() {
+  const candidates = [
+    { command: "python3", args: [] },
+    { command: "python", args: [] },
+    { command: "py", args: ["-3"] },
+  ];
+  for (const candidate of candidates) {
+    const probe = spawnSync(candidate.command, [...candidate.args, "--version"], {
+      encoding: "utf-8",
+    });
+    if (!probe.error && probe.status === 0) return candidate;
+  }
+  throw new Error("Python 3 is required to run merge-batch-graphs.py tests");
+}
+
 function runMerge() {
-  const result = spawnSync("python3", [MERGE_SCRIPT, projectRoot], {
+  const result = spawnSync(PYTHON.command, [...PYTHON.args, MERGE_SCRIPT, projectRoot], {
     encoding: "utf-8",
   });
   if (result.status !== 0) {
@@ -163,7 +179,8 @@ describe("merge-batch-graphs.py imports recovery", () => {
 
     const { assembled, stderr } = runMerge();
     expect(assembled.edges.filter((e) => e.type === "imports")).toHaveLength(1);
-    expect(stderr).toContain("importMap recovery skipped — scan-result.json not found");
+    expect(stderr).toContain("importMap recovery skipped");
+    expect(stderr).toContain("scan-result.json not found");
   });
 
   it("never produces self-import edges", () => {

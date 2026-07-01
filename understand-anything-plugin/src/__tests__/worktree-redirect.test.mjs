@@ -6,7 +6,7 @@
 // below — there is no shared script to source (per-skill convention in this repo).
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -27,6 +27,10 @@ fi
 echo "$PROJECT_ROOT"
 `;
 
+const bashProbe = spawnSync("bash", ["--version"], { encoding: "utf8" });
+const hasBash = !bashProbe.error && bashProbe.status === 0;
+const describeWithBash = hasBash ? describe : describe.skip;
+
 function runResolve(projectRoot, env = {}) {
   // No `set -e` — the snippet relies on `git ... 2>/dev/null` returning empty
   // strings when not in a git repo; `set -e` would short-circuit instead.
@@ -42,27 +46,27 @@ let mainRepo;
 let worktree;
 let subdir;
 
-beforeAll(() => {
-  tmpRoot = realpathSync(mkdtempSync(join(tmpdir(), "ua-wt-")));
-  mainRepo = join(tmpRoot, "main");
-  worktree = join(tmpRoot, "wt");
-  subdir = join(worktree, "src", "deep");
+describeWithBash("worktree-redirect snippet (issue #133)", () => {
+  beforeAll(() => {
+    tmpRoot = realpathSync(mkdtempSync(join(tmpdir(), "ua-wt-")));
+    mainRepo = join(tmpRoot, "main");
+    worktree = join(tmpRoot, "wt");
+    subdir = join(worktree, "src", "deep");
 
-  execFileSync("git", ["init", "-q", "-b", "main", mainRepo]);
-  execFileSync("git", ["-C", mainRepo, "config", "user.email", "t@t"]);
-  execFileSync("git", ["-C", mainRepo, "config", "user.name", "t"]);
-  writeFileSync(join(mainRepo, "README.md"), "main\n");
-  execFileSync("git", ["-C", mainRepo, "add", "."]);
-  execFileSync("git", ["-C", mainRepo, "commit", "-q", "-m", "init"]);
-  execFileSync("git", ["-C", mainRepo, "worktree", "add", "-q", worktree]);
-  mkdirSync(subdir, { recursive: true });
-});
+    execFileSync("git", ["init", "-q", "-b", "main", mainRepo]);
+    execFileSync("git", ["-C", mainRepo, "config", "user.email", "t@t"]);
+    execFileSync("git", ["-C", mainRepo, "config", "user.name", "t"]);
+    writeFileSync(join(mainRepo, "README.md"), "main\n");
+    execFileSync("git", ["-C", mainRepo, "add", "."]);
+    execFileSync("git", ["-C", mainRepo, "commit", "-q", "-m", "init"]);
+    execFileSync("git", ["-C", mainRepo, "worktree", "add", "-q", worktree]);
+    mkdirSync(subdir, { recursive: true });
+  });
 
-afterAll(() => {
-  if (tmpRoot) rmSync(tmpRoot, { recursive: true, force: true });
-});
+  afterAll(() => {
+    if (tmpRoot) rmSync(tmpRoot, { recursive: true, force: true });
+  });
 
-describe("worktree-redirect snippet (issue #133)", () => {
   it("leaves PROJECT_ROOT alone in a normal checkout", () => {
     expect(runResolve(mainRepo)).toBe(mainRepo);
   });
