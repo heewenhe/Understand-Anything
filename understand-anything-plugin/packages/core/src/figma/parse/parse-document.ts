@@ -33,7 +33,10 @@ export function parseDocument(doc: FigmaDocument, fileKey: string): { nodes: Gra
       if (child.type === "INSTANCE") {
         const inst = mkNode("instance", child.id, child.name, {
           fileKey, nodeId: child.id, figmaType: "INSTANCE",
-          componentKey: child.componentId,
+          // The global published key (GUID) from the document's components
+          // map — child.componentId is only a file-local node id, already
+          // captured by the instance_of edge below.
+          componentKey: child.componentId ? doc.components?.[child.componentId]?.key : undefined,
           prototypeTargets: child.transitionNodeID ? [child.transitionNodeID] : undefined,
         });
         add(inst);

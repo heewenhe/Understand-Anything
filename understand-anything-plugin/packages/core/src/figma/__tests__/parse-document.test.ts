@@ -19,6 +19,7 @@ const doc: FigmaDocument = {
       ] },
     ],
   },
+  components: { "2:1": { key: "COMP_KEY_GUID", name: "Primary", componentSetId: "2:0" } },
 };
 
 describe("parseDocument", () => {
@@ -43,6 +44,15 @@ describe("parseDocument", () => {
     const screen = nodes.find((n) => n.id === "screen:1:1")!;
     expect(screen.figmaMeta?.dimensions?.width).toBe(375);
     expect(screen.figmaMeta?.fileKey).toBe("ABC123");
+  });
+  it("records the published component key (not the local node id) on instances", () => {
+    const inst = nodes.find((n) => n.id === "instance:1:2")!;
+    expect(inst.figmaMeta?.componentKey).toBe("COMP_KEY_GUID");
+  });
+  it("omits componentKey when the components map has no entry", () => {
+    const bare: FigmaDocument = { ...doc, components: {} };
+    const inst = parseDocument(bare, "ABC123").nodes.find((n) => n.id === "instance:1:2")!;
+    expect(inst.figmaMeta?.componentKey).toBeUndefined();
   });
   it("emits validateGraph-ready nodes (summary/tags/complexity present)", () => {
     expect(nodes.every((n) => n.summary && n.tags.length > 0 && n.complexity)).toBe(true);
