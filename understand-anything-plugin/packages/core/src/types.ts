@@ -215,4 +215,14 @@ export interface AnalyzerPlugin {
   resolveImports?(filePath: string, content: string): ImportResolution[];
   extractCallGraph?(filePath: string, content: string): CallGraphEntry[];
   extractReferences?(filePath: string, content: string): ReferenceResolution[];
+  /**
+   * Optional single-parse fast path returning both structure and call graph.
+   * Plugins that parse source (e.g. tree-sitter) can implement this to avoid
+   * parsing the same file twice when a caller needs both. Output must equal
+   * `analyzeFile` + `extractCallGraph` called separately.
+   */
+  analyzeFileFull?(
+    filePath: string,
+    content: string,
+  ): { structure: StructuralAnalysis; callGraph: CallGraphEntry[] };
 }
