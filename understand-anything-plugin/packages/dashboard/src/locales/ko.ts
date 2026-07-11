@@ -179,6 +179,8 @@ export const ko = {
     closeExpanded: "확장된 코드 뷰어 닫기",
     closeViewer: "코드 뷰어 닫기",
     sourceUnavailable: "소스 사용 불가",
+    rendered: "렌더링",
+    source: "소스",
   },
   customNode: {
     tested: "테스트됨",

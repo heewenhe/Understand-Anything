@@ -179,6 +179,8 @@ export const en = {
     closeExpanded: "Close expanded code viewer",
     closeViewer: "Close code viewer",
     sourceUnavailable: "Source unavailable",
+    rendered: "Rendered",
+    source: "Source",
   },
   customNode: {
     tested: "Tested",

@@ -179,6 +179,8 @@ export const ja = {
     closeExpanded: "展開したコードビューアを閉じる",
     closeViewer: "コードビューアを閉じる",
     sourceUnavailable: "ソースが利用できません",
+    rendered: "プレビュー",
+    source: "ソース",
   },
   customNode: {
     tested: "テスト済み",

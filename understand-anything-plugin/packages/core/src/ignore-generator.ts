@@ -14,8 +14,9 @@ const HEADER = `# .understandignore — patterns for files/dirs to exclude from 
 
 // Directory names matched case-insensitively against the on-disk entry name.
 // Mixes ecosystem conventions: __tests__ (JS), test/tests (multi), testdata
-// (Go), .storybook (JS), and PascalCase variants (UnitTests/IntegrationTests)
-// commonly seen in C#/.NET projects.
+// (Go), .storybook (JS), PascalCase variants (UnitTests/IntegrationTests)
+// commonly seen in C#/.NET projects, and benchmark dirs (bench/benchmarks)
+// idiomatic to large C++ projects (LLVM, abseil, bitcoin, Catch2).
 const EXACT_DIR_NAMES = [
   "__tests__",
   "test",
@@ -28,7 +29,11 @@ const EXACT_DIR_NAMES = [
   "migrations",
   ".storybook",
   "unittests",
+  "unittest",
   "integrationtests",
+  "bench",
+  "benchmark",
+  "benchmarks",
 ];
 
 // Directory-name suffixes matched case-insensitively via String.endsWith.
@@ -70,6 +75,24 @@ const TEST_PATTERN_GROUPS: Array<{ label: string; patterns: string[] }> = [
   {
     label: "Go",
     patterns: ["**/*_test.go"],
+  },
+  {
+    // Many C++ projects (abseil, Chromium, protobuf) interleave test files
+    // with source rather than using a dedicated test/ dir — so file-pattern
+    // exclusions matter more here than for languages where tests cluster.
+    label: "C++",
+    patterns: [
+      "**/*_test.cc",
+      "**/*_test.cpp",
+      "**/*_test.cxx",
+      "**/*Test.cc",
+      "**/*Test.cpp",
+      "**/*_unittest.cc",
+      "**/*_unittest.cpp",
+      "**/*_browsertest.cc",
+      "**/*_benchmark.cc",
+      "**/*Benchmark.cpp",
+    ],
   },
 ];
 

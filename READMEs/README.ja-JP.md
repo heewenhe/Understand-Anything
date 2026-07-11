@@ -116,7 +116,7 @@ Understand Anything は [Claude Code Plugin](https://code.claude.com/docs/en/plu
 /understand
 ```
 
-マルチエージェントパイプラインがプロジェクトをスキャンし、すべてのファイル・関数・クラス・依存関係を抽出して、`.understand-anything/knowledge-graph.json` にナレッジグラフを保存します。
+マルチエージェントパイプラインがプロジェクトをスキャンし、すべてのファイル・関数・クラス・依存関係を抽出して、`.ua/knowledge-graph.json` にナレッジグラフを保存します。（すでに `.understand-anything/` ディレクトリがあるプロジェクトはそれを引き続き使用します。存在する場合はそれがデータディレクトリのままなので、移行は不要です。）
 
 > **トークン使用量にご注意:** 初回の `/understand` はコードベース全体を分析するため、大規模プロジェクトではかなりのトークンを消費することがあります。トークンプラン / サブスクリプションでの実行、または初期化にはローカルモデル（上記参照）の使用をおすすめします。以降の実行はデフォルトで増分処理され、変更されたファイルのみ再分析するため、消費トークンは大幅に少なくなります。
 
@@ -202,6 +202,8 @@ iwr -useb https://raw.githubusercontent.com/Egonex-AI/Understand-Anything/main/i
 
 インストーラーはリポジトリを `~/.understand-anything/repo` にクローンし、選択したプラットフォーム用のシンボリックリンクを作成します。完了後はCLI/IDEを再起動してください。
 
+> **スキルの呼び出し方について：** 呼び出しのプレフィックスはプラットフォームごとに異なります。多くのプラットフォームはスラッシュコマンド（`/understand`）を使いますが、**Codexは`$`を使います** — `/understand`ではなく`$understand`と入力してください。どちらのプレフィックスも認識されない場合は、*「understandスキルを使ってこのプロジェクトを分析して」*のように自然言語で依頼できます。
+
 - サポートされる `<platform>` 値：`gemini`、`codex`、`opencode`、`pi`、`openclaw`、`antigravity`、`vibe`、`vscode`、`hermes`、`cline`、`kimi`、`nanobot`、`kiro`
 - 後で更新：`./install.sh --update`
 - アンインストール：`./install.sh --uninstall <platform>`
@@ -265,11 +267,11 @@ curl -fsSL https://raw.githubusercontent.com/Egonex-AI/Understand-Anything/main/
 
 > **例：** [GoogleCloudPlatform/microservices-demo](https://github.com/GoogleCloudPlatform/microservices-demo) —— コミット済みのグラフを含む Go / Java / Python / Node のリファレンスプロジェクト。
 
-**コミット対象：** `.understand-anything/` 内のすべてのファイル。ただし `intermediate/` と `diff-overlay.json` は除きます（これらはローカルの一時ファイルです）。
+**コミット対象：** `.ua/` 内のすべてのファイル。ただし `intermediate/` と `diff-overlay.json` は除きます（これらはローカルの一時ファイルです）。（レガシープロジェクトは `.understand-anything/` を使用します。そのディレクトリが存在する場合は、以下のディレクトリ名をそれに置き換えてください。）
 
 ```gitignore
-.understand-anything/intermediate/
-.understand-anything/diff-overlay.json
+.ua/intermediate/
+.ua/diff-overlay.json
 ```
 
 **最新状態を保つ：** `/understand --auto-update` を有効にすると、post-commit フックがグラフを増分的に更新し、各コミットに対応するグラフが揃います。またはリリース前に `/understand` を手動で再実行します。
@@ -278,9 +280,21 @@ curl -fsSL https://raw.githubusercontent.com/Egonex-AI/Understand-Anything/main/
 
 ```bash
 git lfs install
-git lfs track ".understand-anything/*.json"
-git add .gitattributes .understand-anything/
+git lfs track ".ua/*.json"
+git add .gitattributes .ua/
 ```
+
+### Claude Code なしでダッシュボードを表示する
+
+グラフを生成してコミットしておけば、チームの誰でもコマンド一つで開けます。Claude Code も LLM も API キーも不要で、必要なのは Node.js（>= 18）だけです：
+
+```bash
+npx https://github.com/Egonex-AI/Understand-Anything/releases/latest/download/understand-anything-viewer.tgz /path/to/analyzed/project
+```
+
+ターミナルにトークン付き URL（`http://127.0.0.1:5173/?token=…`）が表示され、完全にインタラクティブなダッシュボードがブラウザで開きます。プロジェクトディレクトリ（デフォルト：カレントディレクトリ）には、コミットされたデータディレクトリ（`.ua/`、または旧来の `.understand-anything/`）が含まれている必要があります。すべてローカルディスクから読み取り専用で配信され、LLM 呼び出しは行われず、データがマシンの外に出ることはありません。
+
+リポジトリのクローンから作業する場合は、`pnpm install && pnpm --filter @understand-anything/core build` の後に `GRAPH_DIR=/path/to/analyzed/project pnpm dev:dashboard` を実行すれば、Vite 開発サーバー経由で同じことができます。
 
 ---
 

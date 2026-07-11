@@ -179,6 +179,8 @@ export const zh = {
     closeExpanded: "关闭展开的代码查看器",
     closeViewer: "关闭代码查看器",
     sourceUnavailable: "源码不可用",
+    rendered: "渲染",
+    source: "源码",
   },
   customNode: {
     tested: "已测试",

@@ -179,6 +179,8 @@ export const zhTW = {
     closeExpanded: "關閉展開的程式碼檢視器",
     closeViewer: "關閉程式碼檢視器",
     sourceUnavailable: "原始碼不可用",
+    rendered: "渲染",
+    source: "原始碼",
   },
   customNode: {
     tested: "已測試",
