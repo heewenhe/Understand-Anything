@@ -162,6 +162,12 @@ describe("generateStarterIgnoreFile", () => {
       const content = generateStarterIgnoreFile(testDir);
       expect(content).toContain("# bench/");
     });
+
+    it("suggests benches/ directories (Cargo convention)", () => {
+      mkdirSync(join(testDir, "benches"), { recursive: true });
+      const content = generateStarterIgnoreFile(testDir);
+      expect(content).toContain("# benches/");
+    });
   });
 
   describe("language-grouped test file patterns", () => {
