@@ -134,6 +134,20 @@ const TEST_PATTERN_GROUPS: Array<{ label: string; patterns: string[] }> = [
       "**/*_bench.rs",
     ],
   },
+  {
+    // Ruby ecosystems split between two test frameworks with distinct
+    // file-naming conventions: RSpec (`*_spec.rb` under spec/) and
+    // Minitest (`*_test.rb` or `test_*.rb` under test/). The dir rules
+    // catch each convention's top-level home, but individual files
+    // sometimes leak elsewhere (lib/**/*_spec.rb in gem repos, engine
+    // test files under app/**/*_test.rb in Rails engines).
+    label: "Ruby",
+    patterns: [
+      "**/*_spec.rb",
+      "**/*_test.rb",
+      "**/test_*.rb",
+    ],
+  },
 ];
 
 /**
