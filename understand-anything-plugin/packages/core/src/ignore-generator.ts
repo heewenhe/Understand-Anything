@@ -146,6 +146,9 @@ const TEST_PATTERN_GROUPS: Array<{ label: string; patterns: string[] }> = [
       "**/*_spec.rb",
       "**/*_test.rb",
       "**/test_*.rb",
+      "**/spec_helper.rb",
+      "**/test_helper.rb",
+      "**/rails_helper.rb",
     ],
   },
 ];

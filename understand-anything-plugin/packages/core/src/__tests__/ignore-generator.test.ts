@@ -274,6 +274,16 @@ describe("generateStarterIgnoreFile", () => {
       expect(content).toContain("# **/test_*.rb");
     });
 
+    it("includes Ruby test-harness helper file patterns", () => {
+      const content = generateStarterIgnoreFile(testDir);
+      // Bootstrapping / configuration files loaded by RSpec + Minitest;
+      // conventionally under spec/ or test/ but sometimes referenced
+      // from elsewhere via `require_relative`.
+      expect(content).toContain("# **/spec_helper.rb");
+      expect(content).toContain("# **/test_helper.rb");
+      expect(content).toContain("# **/rails_helper.rb");
+    });
+
     it("groups patterns under the JS / TS sub-header", () => {
       const content = generateStarterIgnoreFile(testDir);
       expect(content).toContain("# JS / TS");
